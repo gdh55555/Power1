@@ -4,12 +4,10 @@ import android.net.TrafficStats;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.gudh.power1.energy.Status.FileStatus;
-
 import java.io.File;
 import java.io.IOException;
 
-import com.gudh.power1.energy.Status.FileStatus;
+import com.gudh.power1.energy.Analysis.SystemProcess;
 
 /**
  * Created by Admin on 2016/5/11.
@@ -26,7 +24,7 @@ public class TcpNetwork implements Parcelable{
     public static long tcp_snd;
 
     public void FileIsExist(){
-        FileStatus.uid_stat_isExist =  new File("/proc/uid_stat/").exists();
+        SystemProcess.uid_stat_isExist =  new File("/proc/uid_stat/").exists();
     }
     public static TcpNetwork get(int uid) throws IOException{
         return new TcpNetwork(String.format("/proc/uid_stat/%s", uid), uid);
@@ -34,7 +32,7 @@ public class TcpNetwork implements Parcelable{
 
     public TcpNetwork(String path, int uid) throws IOException{
         this.uid = uid;
-        if(FileStatus.uid_stat_isExist) {
+        if(SystemProcess.uid_stat_isExist) {
             this.tcp_rcv = Long.valueOf(ProcFile.readFile(String.format(path + "/%s", "tcp_rcv")));
             this.tcp_snd = Long.valueOf(ProcFile.readFile(String.format(path + "/%s", "tcp_snd")));
         }
@@ -46,7 +44,7 @@ public class TcpNetwork implements Parcelable{
     }
 
     public long getRcv() throws IOException{
-        if(FileStatus.uid_stat_isExist)
+        if(SystemProcess.uid_stat_isExist)
             tcp_rcv = Long.valueOf(ProcFile.readFile(String.format("/proc/uid_stat/%s/tcp_rcv",uid)));
         else
             tcp_rcv = TrafficStats.getUidRxBytes(uid);
@@ -54,7 +52,7 @@ public class TcpNetwork implements Parcelable{
     }
 
     public long getSnd() throws IOException{
-        if(FileStatus.uid_stat_isExist)
+        if(SystemProcess.uid_stat_isExist)
             tcp_rcv = Long.valueOf(ProcFile.readFile(String.format("/proc/uid_stat/%s/tcp_snd", uid)));
         else
             tcp_snd = TrafficStats.getUidTxBytes(uid);

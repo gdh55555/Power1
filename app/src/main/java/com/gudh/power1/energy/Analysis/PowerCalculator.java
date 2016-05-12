@@ -5,4 +5,5 @@ package com.gudh.power1.energy.Analysis;
  */
 public class PowerCalculator {
     private static String powerCalculator = "PowerCalculator";
+
 }
