@@ -33,8 +33,14 @@ public final class Statm extends ProcFile {
      * @throws IOException
      *     if the file does not exist or we don't have read permissions.
      */
-    public static Statm get(int pid) throws IOException {
-        return new Statm(String.format("/proc/%d/statm", pid));
+    public static Statm get(int pid) {
+        try {
+            return new Statm(String.format("/proc/%d/statm", pid));
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public final String[] fields;

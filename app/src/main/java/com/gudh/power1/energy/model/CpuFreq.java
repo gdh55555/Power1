@@ -13,15 +13,22 @@ import java.util.HashMap;
  */
 public final class CpuFreq extends ProcFile {
 
-    public static HashMap<Long, Long> freq;
-
-    public static CpuFreq get(int i) throws IOException{
-        return new CpuFreq("/sys/devices/system/cpu/cpu" + i + "/cpufreq/stats/time_in_state");
+    public static CpuFreq get(int i){
+        try {
+            return new CpuFreq("/sys/devices/system/cpu/cpu" + i + "/cpufreq/stats/time_in_state");
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     protected CpuFreq(String path) throws IOException {
         super(path);
-        freq = new HashMap<>();
+    }
+
+    public HashMap getCpuFreq(){
+        HashMap<Long, Long> freq = new HashMap<>();
         String[] lines = content.split("\n");
         for (String line : lines) {
             String[] split = line.split(" ");
@@ -29,5 +36,6 @@ public final class CpuFreq extends ProcFile {
                 freq.put(Long.valueOf(split[0]), Long.valueOf(split[1]));
             }
         }
+        return freq;
     }
 }

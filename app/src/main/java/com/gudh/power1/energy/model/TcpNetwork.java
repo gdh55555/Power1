@@ -23,11 +23,20 @@ public class TcpNetwork implements Parcelable{
     public static long tcp_rcv;
     public static long tcp_snd;
 
-    public void FileIsExist(){
+    /**
+     * 判断/proc/uid_stat是否存在
+     */
+    public static void  FileIsExist(){
         SystemProcess.uid_stat_isExist =  new File("/proc/uid_stat/").exists();
     }
-    public static TcpNetwork get(int uid) throws IOException{
-        return new TcpNetwork(String.format("/proc/uid_stat/%s", uid), uid);
+    public static TcpNetwork get(int uid){
+        try {
+            return new TcpNetwork(String.format("/proc/uid_stat/%s", uid), uid);
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public TcpNetwork(String path, int uid) throws IOException{
@@ -43,23 +52,32 @@ public class TcpNetwork implements Parcelable{
         }
     }
 
-    public long getRcv() throws IOException{
+    public long getRcv() {
+
         if(SystemProcess.uid_stat_isExist)
-            tcp_rcv = Long.valueOf(ProcFile.readFile(String.format("/proc/uid_stat/%s/tcp_rcv",uid)));
+            try {
+                tcp_rcv = Long.valueOf(ProcFile.readFile(String.format("/proc/uid_stat/%s/tcp_rcv",uid)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         else
             tcp_rcv = TrafficStats.getUidRxBytes(uid);
         return tcp_rcv;
     }
 
-    public long getSnd() throws IOException{
+    public long getSnd(){
         if(SystemProcess.uid_stat_isExist)
-            tcp_rcv = Long.valueOf(ProcFile.readFile(String.format("/proc/uid_stat/%s/tcp_snd", uid)));
+            try {
+                tcp_rcv = Long.valueOf(ProcFile.readFile(String.format("/proc/uid_stat/%s/tcp_snd", uid)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         else
             tcp_snd = TrafficStats.getUidTxBytes(uid);
         return tcp_snd;
     }
 
-    public void update() throws IOException{
+    public void update(){
         getRcv();
         getSnd();
     }

@@ -19,8 +19,14 @@ public final class Cgroup extends ProcFile {
      * @throws IOException
      *     if the file does not exist or we don't have read permissions.
      */
-    public static Cgroup get(int pid) throws IOException {
-        return new Cgroup(String.format("/proc/%d/cgroup", pid));
+    public static Cgroup get(int pid) {
+        try {
+            return new Cgroup(String.format("/proc/%d/cgroup", pid));
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /** the process' control groups */

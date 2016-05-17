@@ -155,8 +155,14 @@ public final class Stat extends ProcFile {
      * @throws IOException
      *     if the file does not exist or we don't have read permissions.
      */
-    public static Stat get(int pid) throws IOException {
-        return new Stat(String.format("/proc/%d/stat", pid));
+    public static Stat get(int pid){
+        try {
+            return new Stat(String.format("/proc/%d/stat", pid));
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private final String[] fields;

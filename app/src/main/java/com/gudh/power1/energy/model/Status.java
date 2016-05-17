@@ -126,8 +126,14 @@ public final class Status extends ProcFile {
      * @throws IOException
      *     if the file does not exist or we don't have read permissions.
      */
-    public static Status get(int pid) throws IOException {
-        return new Status(String.format("/proc/%d/status", pid));
+    public static Status get(int pid) {
+        try {
+            return new Status(String.format("/proc/%d/status", pid));
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private Status(String path) throws IOException {
