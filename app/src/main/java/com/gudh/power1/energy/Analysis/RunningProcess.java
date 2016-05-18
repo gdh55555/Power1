@@ -2,17 +2,25 @@ package com.gudh.power1.energy.Analysis;
 
 import android.app.ActivityManager;
 
+import com.gudh.power1.energy.model.CpuFreq;
+import com.gudh.power1.energy.model.CpuInfo;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by Admin on 2016/5/12.
  */
 public class RunningProcess {
+
+    private static int cpuNum = -1;
+    private static long cpuNumCheckTime = 1000; //检测两次cpuNum的时间间隔， 原app是3600000
+    private static long cpuNumPreTime = -1;
 
     public static long[] getRunningProcess(ArrayList arrayList)  {
         if(arrayList.isEmpty())
@@ -40,12 +48,8 @@ public class RunningProcess {
         }
     }
 
-    public static ArrayList[] getRunningProcess(ActivityManager activityManager){
-        int i;
-        ArrayList[] arrayLists = new ArrayList[4];
-        for (i = 0; i < 4; i++) {
-            arrayLists[i] = new ArrayList();
-        }
+    public static ArrayList<Integer>[] getRunningProcess(ActivityManager activityManager){
+        ArrayList<Integer>[] arrayLists = new ArrayList[4];
         List runningAppProcesses = activityManager.getRunningAppProcesses();
         if (runningAppProcesses.size() > 1) {
             for (int j = 0; j < runningAppProcesses.size(); j++) {
@@ -128,5 +132,23 @@ public class RunningProcess {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static int getCpuNum(){
+        if(cpuNum <= 0 || System.currentTimeMillis() - cpuNumPreTime > cpuNumCheckTime){
+            cpuNum = CpuInfo.getCpuNum();
+            cpuNumPreTime = System.currentTimeMillis();
+        }
+        return cpuNum;
+    }
+
+    public static HashMap<String, Long> getCpuInfo(){
+        HashMap<String, Long> cpuTime;
+        CpuInfo cpuInfo = CpuInfo.get();
+        cpuTime = cpuInfo.getCpuTime();
+        for(int i = 0; i < getCpuNum(); i++){
+            cpuTime.putAll(CpuFreq.get(i).getCpuFreq());
+        }
+        return cpuTime;
     }
 }

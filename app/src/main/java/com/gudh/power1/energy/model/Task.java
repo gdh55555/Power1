@@ -14,8 +14,8 @@ import java.util.HashMap;
  * 遍历/proc/[pid]/task下的目录获取值
  */
 public class Task {
-    public static HashMap getTask(int i){
-        HashMap hashMap = new HashMap();
+    public static HashMap<String, long[]> getTask(int i){
+        HashMap<String, long[]> hashMap = new HashMap();
         if (new File("/proc/" + i + "/task").exists()) {
             try {
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(

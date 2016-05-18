@@ -29,7 +29,7 @@ public final class CpuInfo extends ProcFile{
         super(path);
     }
 
-    public HashMap getCpuTime(){
+    public HashMap<String, Long> getCpuTime(){
         HashMap<String, Long> total = new HashMap<>();
         for(String split : content.split("\n")){
             String[] split2 = split.split(" ");
@@ -45,7 +45,7 @@ public final class CpuInfo extends ProcFile{
         return total;
     }
 
-    public static int getCpuNum() throws IOException {
+    public static int getCpuNum() {
         int i = 0;
         BufferedReader bufferedReader = null;
         try {
@@ -71,7 +71,11 @@ public final class CpuInfo extends ProcFile{
                 }
             }
         }
-        bufferedReader.close();
+        try {
+            bufferedReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return i+1;
     }
 

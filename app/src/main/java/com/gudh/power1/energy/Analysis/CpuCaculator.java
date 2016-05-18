@@ -1,7 +1,5 @@
 package com.gudh.power1.energy.Analysis;
 
-import com.gudh.power1.energy.model.CpuInfo;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,21 +18,18 @@ public class CpuCaculator {
      */
     public void cpuCal(long curTime)  {
         if(curTime != this.preTime){
-            CpuInfo cpuInfo = CpuInfo.get();
-            if(cpuInfo != null) {
-                HashMap<String, Long> cpuTime = cpuInfo.getCpuTime();
-                if (isFirst()) {
-                    for (Map.Entry<String, Long> entry : cpuTime.entrySet()) {
-                        String str = entry.getKey();
-                        if(this.pre.containsKey(str) && ((entry.getValue() - this.pre.get(str)) > 0)){
-                            this.total.put(str, this.total.containsValue(str) ? (this.total.get(str)) : entry.getValue() - this.pre.get(str));
-                        }
+            HashMap<String, Long> cpuTime = RunningProcess.getCpuInfo();
+            if (isFirst()) {
+                for (Map.Entry<String, Long> entry : cpuTime.entrySet()) {
+                    String str = entry.getKey();
+                    if(this.pre.containsKey(str) && ((entry.getValue() - this.pre.get(str)) > 0)){
+                        this.total.put(str, this.total.containsValue(str) ? (this.total.get(str)) : entry.getValue() - this.pre.get(str));
                     }
                 }
-                this.pre = (HashMap<String, Long>) cpuTime.clone();
-                this.preTime = curTime;
             }
-        }
+            this.pre = (HashMap<String, Long>) cpuTime.clone();
+            this.preTime = curTime;
+            }
     }
 
     private boolean isFirst() {

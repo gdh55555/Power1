@@ -6,6 +6,7 @@ import android.os.Parcelable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import com.gudh.power1.energy.Analysis.SystemProcess;
 
@@ -52,7 +53,7 @@ public class TcpNetwork implements Parcelable{
         }
     }
 
-    public long getRcv() {
+    public long getTcp_rcv() {
 
         if(SystemProcess.uid_stat_isExist)
             try {
@@ -65,7 +66,7 @@ public class TcpNetwork implements Parcelable{
         return tcp_rcv;
     }
 
-    public long getSnd(){
+    public long getTcp_snd(){
         if(SystemProcess.uid_stat_isExist)
             try {
                 tcp_rcv = Long.valueOf(ProcFile.readFile(String.format("/proc/uid_stat/%s/tcp_snd", uid)));
@@ -78,15 +79,30 @@ public class TcpNetwork implements Parcelable{
     }
 
     public void update(){
-        getRcv();
-        getSnd();
-    }
-    public long getTcp_rcv() {
-        return tcp_rcv;
+        getTcp_rcv();
+        getTcp_snd();
     }
 
-    public long getTcp_snd() {
-        return tcp_snd;
+    public static ArrayList<Integer> getFileList(){
+        if (!new File("/proc/uid_stat/").exists()) {
+            return new ArrayList<>();
+        }
+        String[] list = new File("/proc/uid_stat/").list();
+        ArrayList<Integer> arrayList = new ArrayList<>();
+        if (list != null) {
+            for (String parseInt : list) {
+                arrayList.add(Integer.parseInt(parseInt));
+            }
+        }
+        return arrayList;
+    }
+
+    public long getRcv() {
+        return this.tcp_rcv;
+    }
+
+    public long getSnd() {
+        return this.tcp_snd;
     }
 
     protected TcpNetwork(Parcel in) {
