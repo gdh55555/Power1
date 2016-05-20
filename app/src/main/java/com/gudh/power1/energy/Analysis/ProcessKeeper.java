@@ -79,6 +79,10 @@ public class ProcessKeeper {
         this.improtance |= importance;
     }
 
+    public int getImprotance(){
+        return this.improtance;
+    }
+
     public void addPrio(Integer prio) {
         if(!this.prio.contains(prio))
             this.prio.add(prio);
@@ -165,5 +169,9 @@ public class ProcessKeeper {
 
     public boolean isFisrtPid() {
         return this.pidTime != -1;
+    }
+
+    public long[] getSysUserTime() {
+        return new long[]{this.systemTime, this.userTime};
     }
 }

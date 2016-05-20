@@ -15,6 +15,8 @@ import com.gudh.power1.energy.model.TcpNetwork;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class GatherInfo implements Runnable{
 
@@ -22,8 +24,17 @@ public class GatherInfo implements Runnable{
     private long preTime = -1;
     private String timeFormat;      //时间格式
     private ActivityManager activity;
-    private SparseArray<ProcessKeeper> pkArray;
+    private SparseArray<ProcessKeeper> pkArray; //对应uid 和 pk 变量
+    private SparseArray<ArrayList<long[]>> rssArray; //貌似是rss
+    private HashMap<String, ArrayList> event = new HashMap<>();
+    private ArrayList<long[]> D;
+    private ArrayList<Integer> H;
+    private int N;
     private String path;
+    private boolean isLoop = true;  //重复多次统计
+    private boolean isFirst = true;
+    private boolean isCompute = false;
+
 
     private LogWrite logWrite;
     private CpuCaculator cpuCaculator;
@@ -32,7 +43,10 @@ public class GatherInfo implements Runnable{
     public GatherInfo(PowerService powerService){
         this.activity = (ActivityManager) powerService.getSystemService(Context.ACTIVITY_SERVICE);
         this.pkArray = new SparseArray<>();
+        this.rssArray = new SparseArray<>();
         path = "";  //目前为空path
+        this.N = -1;
+        this.H = new ArrayList<>();
     }
     @Override
     public void run() {
@@ -45,11 +59,71 @@ public class GatherInfo implements Runnable{
         Date date = new java.sql.Date(this.curTime);  //mysql的data
         this.logWrite.init(this.timeFormat, this.curTime, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(date)); //时间
 
-        if(this.preTime < this.curTime){
-           cpuCal(this.curTime);
-            tcpNetwork(this.curTime);
+        {
+
+        }
+        while(this.isLoop) {
+            if(this.isFirst){
+                if(!this.isCompute){
+                    if (this.preTime < this.curTime) {
+                        cpuCal(this.curTime);
+                        tcpNetwork(this.curTime);
+                        rssTotal(this.curTime);
+                        calPower(this.preTime, this.curTime, false);
+                    }
+                }
+            }
         }
 
+    }
+
+    private void calPower(long preTime, long curTime, boolean isUpdate) {
+        ArrayList<Integer> copy = (ArrayList<Integer>) this.H.clone();
+        if(isUpdate){
+
+        }
+        PowerCalculator.calPower(this.preTime, this.curTime, isUpdate, this.pkArray, copy, this.cpuCaculator, this.event, this.D);
+
+    }
+
+    private void rssTotal(long curTime) {
+        ArrayList<Integer> pids = new ArrayList<>();
+        ArrayList<Integer> pkIndex = new ArrayList<>();
+        for(int i = 0; i < this.pkArray.size(); i++) {
+            int index = this.pkArray.keyAt(i);
+            ProcessKeeper pkTmp = this.pkArray.get(index);
+            if (pkTmp != null) {
+                Iterator<Integer> it = pkTmp.getPids().iterator();
+                while (it.hasNext()) {
+                    pids.add(it.next());
+                    pkIndex.add(index);
+                }
+            }
+        }
+        if(!pids.isEmpty()){
+            long[] tmp = RunningProcess.getRunningProcess(pids);
+            if(tmp.length == pkIndex.size()){
+                long[] obj = new long[2];
+                obj[0] = curTime;
+                int i = 0;
+                while(i < pkIndex.size()){
+                    obj[1] += tmp[i];
+                    if(i == pkIndex.size() - 1 || !pkIndex.get(i).equals(pkIndex.get(i+1))){ //对应不同uid
+                        int index = pkIndex.get(i);
+                        ArrayList<long[]> rssTmp_t;
+                        ArrayList<long[]> rssTmp = this.rssArray.get(index);
+                        if(rssTmp == null){
+                            rssTmp = new ArrayList<>();
+                            rssArray.put(index, rssTmp);
+                        }
+                        rssTmp_t = rssTmp;
+                        rssTmp_t.add(obj.clone());
+                        obj[1] = 0;
+                    }
+                    i++;
+                }
+            }
+        }
 
     }
 
@@ -124,7 +198,7 @@ public class GatherInfo implements Runnable{
                     pkTemp.updateNetUsage(curTime);
                 }
             }
-
+            i++;
         }
     }
 }

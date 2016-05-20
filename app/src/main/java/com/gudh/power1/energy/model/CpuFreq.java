@@ -1,6 +1,9 @@
 package com.gudh.power1.energy.model;
 
+import com.gudh.power1.energy.Analysis.SysemInfo;
+
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.HashMap;
 
 /**
