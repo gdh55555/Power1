@@ -23,12 +23,12 @@ public class CpuCaculator {
                 for (Map.Entry<String, Long> entry : cpuTime.entrySet()) {
                     String str = entry.getKey();
                     if(this.pre.containsKey(str) && ((entry.getValue() - this.pre.get(str)) > 0)){
-                        this.total.put(str, this.total.containsValue(str) ? (this.total.get(str)) : entry.getValue() - this.pre.get(str));
+                        this.total.put(str, (this.total.containsValue(str) ? this.total.get(str): 0) + entry.getValue() - this.pre.get(str));
                     }
                 }
             }
-            this.pre = (HashMap<String, Long>) cpuTime.clone();
-            this.preTime = curTime;
+            this.pre = (HashMap<String, Long>) cpuTime.clone();     //上个时间的hashmap
+            this.preTime = curTime;                                 //上个时间
             }
     }
 

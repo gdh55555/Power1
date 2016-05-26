@@ -1,6 +1,9 @@
 package com.gudh.power1.energy.Analysis;
 
 import android.app.ActivityManager;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.util.SparseArray;
 
 import com.gudh.power1.energy.model.CpuFreq;
 import com.gudh.power1.energy.model.CpuInfo;
@@ -10,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -21,6 +25,7 @@ public class RunningProcess {
     private static int cpuNum = -1;
     private static long cpuNumCheckTime = 1000; //检测两次cpuNum的时间间隔， 原app是3600000
     private static long cpuNumPreTime = -1;
+    private static SparseArray<PackageName> packName = new SparseArray<>();
 
     public static long[] getRunningProcess(ArrayList arrayList)  {
         if(arrayList.isEmpty())
@@ -142,6 +147,10 @@ public class RunningProcess {
         return cpuNum;
     }
 
+    /**
+     * get cpu time and freq
+     * @return hashmap
+     */
     public static HashMap<String, Long> getCpuInfo(){
         HashMap<String, Long> cpuTime;
         CpuInfo cpuInfo = CpuInfo.get();
@@ -150,5 +159,63 @@ public class RunningProcess {
             cpuTime.putAll(CpuFreq.get(i).getCpuFreq());
         }
         return cpuTime;
+    }
+
+    public static String[] getPackage(int i, PackageManager packageManager) {
+        PackageName pn = packName.get(i);
+        if(pn == null){
+            pn = new PackageName();
+            packName.put(i, pn);
+        }
+        pn.canUpdate();
+        String b = pn.getName();
+        if(b != null){
+            if(b.equals(packageManager.getNameForUid(i)))
+                return pn.getInfo();
+            pn.clear();
+        }
+        getPackage(i, pn, packageManager);
+        return pn.getInfo();
+    }
+
+    private static void getPackage(int i, PackageName pn, PackageManager packageManager) {
+        String[] packagesForUid = packageManager.getPackagesForUid(i);
+        if (packagesForUid != null && packagesForUid.length == 1) {
+            String str = packagesForUid[0];
+            PackageInfo packageInfo = null;
+            try {
+                packageInfo = packageManager.getPackageInfo(str, PackageManager.GET_PERMISSIONS);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            if (packageInfo != null) {
+                pn.setName(str);
+                pn.setLabel(packageManager.getApplicationLabel(packageInfo.applicationInfo).toString());
+                pn.setversionCode(packageInfo.versionCode);
+                pn.setVersionName(packageInfo.versionName);
+                String[] strArr = packageInfo.requestedPermissions;
+                if (strArr != null) {
+                    List asList = Arrays.asList(strArr);
+                    if (asList.contains("android.permission.CAMERA")) {
+                        pn.setPermission(1);
+                    }
+                    if (asList.contains("android.permission.FLASHLIGHT")) {
+                        pn.setPermission(2);
+                    }
+                    if (asList.contains("android.permission.BLUETOOTH")) {
+                        pn.setPermission(4);
+                    }
+                    if (asList.contains("android.permission.MODIFY_AUDIO_SETTINGS")) {
+                        pn.setPermission(8);
+                    }
+                    if (asList.contains("android.permission.RECORD_AUDIO")) {
+                        pn.setPermission(16);
+                    }
+                    if (asList.contains("android.permission.ACCESS_FINE_LOCATION")) {
+                        pn.setPermission(32);
+                    }
+                }
+            }
+        }
     }
 }

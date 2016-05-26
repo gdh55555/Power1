@@ -1,11 +1,9 @@
 package com.gudh.power1.energy.Analysis;
 
 import android.util.SparseArray;
-import android.webkit.DownloadListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.InputMismatchException;
 import java.util.Map;
 
 /**
@@ -14,8 +12,19 @@ import java.util.Map;
 public class PowerCalculator {
     private static String powerCalculator = "PowerCalculator";
 
+    /**
+     * 统计电量
+     * @param preTime 前一个时间
+     * @param curTime 后一个时间
+     * @param isUpdate  。。
+     * @param pkArray   pk变量
+     * @param copy      。。
+     * @param cpuCaculator 。。
+     * @param event 时间
+     * @param d  。。
+     */
     public static void calPower(long preTime, long curTime, boolean isUpdate,SparseArray<ProcessKeeper> pkArray, ArrayList<Integer> copy, CpuCaculator cpuCaculator, HashMap<String, ArrayList> event, ArrayList<long[]> d) {
-        SparseArray<HashMap<String, Long>> cpu = calCpu(cpuCaculator.clone());
+        SparseArray<HashMap<String, Long>> cpu = calCpu(cpuCaculator.clone()); //第一次为空
         SparseArray<SparseArray<Double[]>> cpuUsage = calCpuDetail(cpu);
         HashMap eve = event;    //处理event, 暂时未统计
         for(int i = 0; i < pkArray.size(); i++){
@@ -29,11 +38,42 @@ public class PowerCalculator {
 
                 }
                 double cpuPower = calCpuPower(sysTime, userTime, impor, preTime, curTime, cpu, cpuUsage);
-
+                double networkPower = 0.0d;
+                if(pkTmp.cloneNetworkUsage().isEmpty()){
+                    networkPower = brightnessCal(eve, pkTmp.cloneNetworkUsage());
+                }
+                double brightnessPower = brightnessCal(preTime, curTime, eve);
+                double gpuPower = gpuCal(preTime, curTime, eve, pkTmp);
+                double total = cpuPower + networkPower + brightnessPower + gpuPower;
+                double fgTime, bgTime, fgPower, bgPower;
+                if(impor != 0){
+                    fgPower = total;
+                    fgTime = curTime - preTime;
+                    bgPower = bgTime = 0.0d;
+                }else{
+                    fgPower = fgTime = 0.0d;
+                    bgPower = total;
+                    bgTime = curTime - preTime;
+                }
+                pkTmp.setPower(cpuPower, networkPower, brightnessPower, gpuPower, total);
+                pkTmp.setBgFg(fgPower, bgPower, fgTime, bgTime);
+                pkTmp.setFg(impor);
             }
 
         }
 
+    }
+
+    private static double brightnessCal(long preTime, long curTime, HashMap eve) {
+        return 0.0d;
+    }
+
+    private static double gpuCal(long preTime, long curTime, HashMap eve, ProcessKeeper pkTmp) {
+        return 0.0d;
+    }
+
+    private static double brightnessCal(HashMap<String, ArrayList> event, ArrayList<long[]> longs) {
+        return 0.0d;
     }
 
     private static double calCpuPower(long sysTime, long userTime, int impor, long preTime, long curTime, SparseArray<HashMap<String, Long>> cpu, SparseArray<SparseArray<Double[]>> cpuUsage) {
